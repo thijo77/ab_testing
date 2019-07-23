@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h1>Experience</h1>
+    <form action="" method="post" novalidate>
+        {{ form.hidden_tag() }}
+        <p>
+            {{ form.nombre_classe.label }}<br>
+            {{ form.nombre_classe(size=32) }}
+            {% for error in form.nombre_classe.errors %}
+            <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}
+        </p>
+        <p>
+            {{ form.nombre_utilisateur.label}}<br>
+            {{ form.nombre_utilisateur(size=32) }}
+            {% for error in form.nombre_utilisateur.errors %}
+            <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}
+        </p>
+        <p>
+            {{ form.duree_test.label}}<br>
+            {{ form.duree_test(size=32) }}
+            {% for error in form.duree_test.errors %}
+            <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}
+        </p>
+
+        <p>
+            {{ form.parametre_teste.label }}<br>
+            {{ form.parametre_teste(size=32)}}<br>
+            {% for error in form.parametre_teste.errors %}
+            <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}
+        </p>
+        <p>{{ form.soumettre() }}</p>
+    </form>
+{% endblock %}
