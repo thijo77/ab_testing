@@ -27,3 +27,4 @@ Pour générer le script de migration, il suffit de saisir sur le terminal :
 (venv) $ flask db migrate -m "users table"
 
 Pour appliquer les modifications à la base de données, il suffit d'utiliser la commande suivante : (venv) $ flask db upgrade
+
