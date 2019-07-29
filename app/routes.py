@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 import scipy.stats as scs
 from sqlalchemy import func, text, update
 import datetime
-
+from itertools import groupby
 
 
 
@@ -156,34 +156,36 @@ def observation(id):
 def graphe2(id):
     t=models.Testeur.query.get(id)
     total_individu= db.session.query(models.Observation).filter(text("testeur_id=:value")).params(value=id).count()
-    #print(f"total_individu : {total_individu}")
-    total_succes_controller=db.session.query(models.Observation).filter(text("testeur_id=:testeur_id and classe_renvoyee=:classe_renvoyee and feedback=:feedback")).params(testeur_id=id, classe_renvoyee=1, feedback=1).count()
-    total_succes_challenger=db.session.query(models.Observation).filter(text("testeur_id=:testeur_id and classe_renvoyee=:classe_renvoyee and feedback=:feedback")).params(testeur_id=id, classe_renvoyee=2, feedback=1).count()
-    #print(f"total_succes_controller : {total_succes_controller}")
-    #print(f"total_succes_challenger :  {total_succes_challenger}")
-    total_succes_controller_diff=db.session.query(models.Observation.date_creation, func.count()).filter(text("testeur_id=:value and classe_renvoyee=:valeur1 and feedback=1")).params(value=id, valeur1=1).group_by(
-         func.extract('second', models.Observation.date_creation)-func.extract('second',models.Observation.date_feedback)).all()
-    #print(f"total_succes_controller_diff : {total_succes_controller_diff}")
-    total_succes_challenger_diff=db.session.query(models.Observation.date_creation, func.count()).filter(text("testeur_id=:value and classe_renvoyee=:valeur1 and feedback=1")).params(value=id, valeur1=2).group_by(
-         func.extract('second', models.Observation.date_creation-func.extract('second', models.Observation.date_feedback))).all()
-    #print(f"total_succes_challenger_diff : {total_succes_challenger_diff }")
+
+    total_succes_controller_diff=db.session.query(models.Observation.date_creation, models.Observation.date_feedback).filter(text("testeur_id=:value and classe_renvoyee=:valeur1 and feedback=1")).params(value=id, valeur1=1).all()
+    total_succes_controller_diff = [(elt[1]-elt[0]).seconds for elt in total_succes_controller_diff]
+    print(f"total_succes_controller_diff : {total_succes_controller_diff}")
+    total_succes_challenger_diff=db.session.query(models.Observation.date_creation, models.Observation.date_feedback).filter(text("testeur_id=:value and classe_renvoyee=:valeur1 and feedback=1")).params(value=id, valeur1=2).all()
+    total_succes_challenger_diff = [(elt[1]-elt[0]).seconds for elt in total_succes_challenger_diff]
+    print(f"total_succes_challenger_diff : {total_succes_challenger_diff }")
+
+    total_succes_challenger_diff = [(elt[0], len(list(elt[1]))) for elt in groupby(sorted(total_succes_challenger_diff))]
+    total_succes_controller_diff = [(elt[0], len(list(elt[1]))) for elt in groupby(sorted(total_succes_controller_diff))]
+    print(f'total_succes_controller_diff {total_succes_controller_diff}')
+    print(f'total_succes_challenger_diff {total_succes_challenger_diff}')
+    
 
     tableau_des_tempsChallenger, tableau_succes_challenger = zip(*total_succes_challenger_diff[1:])
     tableau_des_tempsController, tableau_succes_controller = zip(*total_succes_controller_diff[1:]) 
     #print(f"tableau_des_tempsChallenger : {tableau_des_tempsChallenger}")
     #print(f"tableau_succes_challenger : {tableau_succes_challenger}")
-    tableau_temps_challenger_diff = [t.strftime("%-S") for t in tableau_des_tempsChallenger] #recupère le temps pour le challenger
-    tableau_temps_controller_diff = [t.strftime("%-S") for t in tableau_des_tempsController] #recupère le temps pour le controller
+    tableau_temps_challenger_diff = [str(t) for t in tableau_des_tempsChallenger] #recupère le temps pour le challenger
+    tableau_temps_controller_diff = [str(t) for t in tableau_des_tempsController] #recupère le temps pour le controller
     all_temps_diff = sorted(list(set(tableau_des_tempsChallenger + tableau_des_tempsController)))#creation d'une liste triée ayant les temps de chacun des groupes
-    map_challenger_diff = dict(total_succes_challenger_diff[1:])
-    map_controller_diff= dict(total_succes_controller_diff[1:])
+    map_challenger_diff = dict(total_succes_challenger_diff)
+    map_controller_diff= dict(total_succes_controller_diff)
 
     data_controller_diff=[]
     data_challenger_diff=[]
     for temps in all_temps_diff:
         data_challenger_diff.append(map_challenger_diff.get(temps,0))
         data_controller_diff.append(map_controller_diff.get(temps,0))
-    all_temps_diff = [elt.strftime("%-S") for elt in all_temps_diff]
+    all_temps_diff = [str(elt) for elt in all_temps_diff]
 
     print(f"data_challenger :  {data_challenger_diff}")
     print("\n\n")

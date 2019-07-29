@@ -5,10 +5,13 @@ from abtest_handler import AbTestHandler
 app = Flask(__name__)
 
 abh = AbTestHandler()
-
-
-@app.route('/', methods=["POST", "GET"])
+@app.route('/', methods=["GET"])
 def index():
+	return "Hello test app"
+
+
+@app.route('/test/<id>', methods=["POST", "GET"])
+def test(id):
 	if request.method == 'POST' :
 		if 'submit_button_negative' in request.form:
 			abh.send_feedback(0)  # do something
@@ -18,12 +21,13 @@ def index():
 			pass
 
 	try:
-		class_, last_id,test_id = abh.fetch_class()
-		return render_template("index.html", class_=class_, last_id=last_id, test_id=test_id)
+		class_, last_id,test_id = abh.fetch_class(id)
+		return render_template("index.html", class_=class_,
+		 last_id=last_id, test_id=test_id)
 	except Exception as e:
 		print(e)
 		return render_template("failed.html")
 
 
 if __name__ == '__main__':
-	app.run(host="0.0.0.0", debug=True)
+	app.run(host="0.0.0.0", port=5001, debug=True)
